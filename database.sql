@@ -54,7 +54,8 @@ CREATE TABLE safra_wasabi ( -- INFORMAÇÕES GERAIS SOBRE AS SAFRAS
 CREATE TABLE wasabi_daily ( -- DADOS COLETADOS EM CADA SAFRA
 	id_safra INT PRIMARY KEY auto_increment,
     data_hora DATETIME DEFAULT current_timestamp,
-    nivel_luminosidade DECIMAL (6,2)
+	valor_umidade float, 
+	valor_temperatura float
     );
     
 INSERT INTO contato_inicial VALUES
