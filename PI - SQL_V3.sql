@@ -2,79 +2,102 @@ CREATE DATABASE wasabi_db;
 
 USE wasabi_db;
 
-CREATE TABLE `contato_inicial` (
-  `id_contato` INT NOT NULL AUTO_INCREMENT,
-  `nome_empresa` VARCHAR(50) NULL,
-  `email` VARCHAR(100) NOT NULL,
-  `pais` VARCHAR(50) NULL,
-  `mensagem` VARCHAR(500) NULL,
-  `data_cadastro_inicial` DATE NOT NULL,
-  PRIMARY KEY (`id_contato`));
+CREATE TABLE `contato_inicial`(
+`idcontato_inicial` INT PRIMARY KEY,
+`email` VARCHAR(100),
+`pais` VARCHAR(50),
+`mensagem` VARCHAR(500),
+`data_envio` DATE);
 
+CREATE TABLE `empresa`(
+`idempresa` INT PRIMARY KEY AUTO_INCREMENT,
+`token` CHAR(24) NOT NULL,
+`dt_cadastro` DATE NOT NULL,
+`nome` VARCHAR(100) NOT NULL,
+`cnpj_global` VARCHAR(40) NOT NULL,
+`email` VARCHAR(100) NOT NULL,
+`tel_celular` VARCHAR(15) NOT NULL,
+`tel_residencial` VARCHAR(10) ,
+`senha` VARCHAR(255) NOT NULL);
 
-CREATE TABLE `empresa_parceira` (
-  `id_cliente` INT NOT NULL AUTO_INCREMENT,
-  `dtCadastro` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `nome` VARCHAR(1000) NOT NULL,
-  `cnpj_global` VARCHAR(40) NOT NULL,
-  `pais` VARCHAR(40),
-  `estado` VARCHAR(50),
-  `cidade` VARCHAR(100),
-  `complemento` VARCHAR(40),
-  `cep_global` VARCHAR(25),
-  `email` VARCHAR(100) NOT NULL,
-  `tel_celular` VARCHAR(45),
-  `tel_residencial` VARCHAR(8),
-  `senha` VARCHAR(100) NOT NULL,
-  PRIMARY KEY (`id_cliente`),
-  `fk_contato` INT NULL,
-  CONSTRAINT `fk_empresa_parceira_empresa_contato` FOREIGN KEY
-  (`fk_contato`) REFERENCES `contato_inicial` 
-  (`id_contato`)); 
-  
+CREATE TABLE `endereco`(
+`idendereco` INT PRIMARY KEY AUTO_INCREMENT,
+`pais` VARCHAR(45),
+`estado` VARCHAR(45),
+`cep` VARCHAR(9),
+`complemento` VARCHAR(45),
+`numero_residencia` VARCHAR(45),
+`fk_idEmpresa` INT,
+CONSTRAINT `fk_empresa_endereco` FOREIGN KEY (`fk_idEmpresa`) REFERENCES `empresa`(`idEmpresa`));
 
+CREATE TABLE `funcionario`(
+`idfuncionario` INT,
+`fk_empresa` INT,
+`nome` VARCHAR(100),
+`email` VARCHAR(100),
+`senha` VARCHAR(255),
+`data_nascimento` DATE,
+`fk_supervisor` INT,
+CONSTRAINT `pk_empresa_funcionario` PRIMARY KEY (`idfuncionario`,`fk_empresa`),
+CONSTRAINT `fk_empresa_funcionario` FOREIGN KEY (`fk_empresa`) REFERENCES `empresa`(`idempresa`),
+CONSTRAINT `fk_funcionario_supervisor` FOREIGN KEY (`fk_supervisor`) REFERENCES `funcionario`(`idfuncionario`));
 
-/* CREATE TABLE `login` (
-  `id_login` INT NOT NULL AUTO_INCREMENT,
-  `cnpj_global_fk` VARCHAR(40) NOT NULL,
-  `senha` VARCHAR(200) NOT NULL,
-  PRIMARY KEY (`id_login`),
-  INDEX `fk_login_empresa_parceira1_idx` (`cnpj_global_fk` ASC) VISIBLE,
-  CONSTRAINT `fk_login_empresa_parceira1`
-    FOREIGN KEY (`cnpj_global_fk`)
-    REFERENCES `empresa_parceira` (`cnpj_global`));    */
-  
+CREATE TABLE `safra_wasabi`(
+`id_safra` INT PRIMARY KEY AUTO_INCREMENT,
+`numeracao_colheita` INT NOT NULL,
+`area_total` DECIMAL(8,2),
+`densidade_cultivo` DECIMAL(8,2),
+`inicio_safra` DATE,
+`termino_estimado` DATE,
+`tipo_cultivo` VARCHAR(30), 
+CONSTRAINT `chkCultivo`
+CHECK (`tipo_cultivo` IN ('Tradicional', 'Estufa')),
+`tipo_wasabi` VARCHAR(45),
+CONSTRAINT `chkTipoWasabi`
+CHECK (`tipo_wasabi` IN ('Eutrema Japonicum', 'Sawa Wasabi', 'Oka Wasabi')),
+`fk_empresa` INT,
+CONSTRAINT `fk_empresa_safra` FOREIGN KEY (`fk_empresa`)
+REFERENCES `empresa`(`idempresa`));
 
-CREATE TABLE `safra_wasabi` (
-  `id_safra` INT NOT NULL AUTO_INCREMENT,
-  `numeracao_colheita` INT NOT NULL,
-  `area_total` DECIMAL(8,2) NOT NULL,
-  `wasabi_m_quadrado` INT NOT NULL,                    /* Constraint de FK 1:N (Empresa com diversas safras */
-  `inicio_safra` DATE NOT NULL,
-  `termino_estimado` DATE NOT NULL,
-  `max_temp` DECIMAL(6,2) NULL,
-  `min_temp` DECIMAL(6,2) NULL,
-  `tipo_cultivo` VARCHAR(30) NULL,
-  		CONSTRAINT `chkCultivo`
-			CHECK (`tipo_cultivo` IN ('Tradicional', 'Estufa')),
-  `tipo_wasabi` VARCHAR(45) NULL,[
-  CONSTRAINT `chkTipoWasabi`
-			CHECK (`tipo_wasabi` IN ('Eutrema Japonicum', 'Sawa Wasabi', 'Oka Wasabi'))
-  `fkempresa_parceira` int,
-  constraint `chkempresa` foreign key (`fkempresa_parceira`) 
-  references `empresa_parceira` (`id_cliente`),
-  PRIMARY KEY (`id_safra`)); 
-  
+CREATE TABLE `responsavel`(
+`fk_safra_wasabi` INT NOT NULL,
+`fk_funcionario` INT,
+CONSTRAINT `pk_responsavel` PRIMARY KEY (`fk_safra_wasabi`,`fk_funcionario`),
+CONSTRAINT `fk_responsavel_safra` FOREIGN KEY (`fk_safra_wasabi`) REFERENCES `safra_wasabi`(`id_safra`),
+CONSTRAINT `fk_responsavel_funcionario` FOREIGN KEY (`fk_funcionario`) REFERENCES `funcionario`(`idfuncionario`));
 
+CREATE TABLE `sensor`(
+`idsensor` INT PRIMARY KEY AUTO_INCREMENT,
+`modelo` VARCHAR(45) NOT NULL,
+`numero_serie` VARCHAR(45),
+`status_funcionamento` VARCHAR(45) NOT NULL,
+`max_temp` DECIMAL(6,2),
+`min_temp` DECIMAL(6,2),
+`min_umidade` VARCHAR(45),
+`max_umiddade` VARCHAR(45),
+`ultima_calibracao` DATE ,
+`fk_safra` INT , 
+CONSTRAINT `fk_sensor_safra` FOREIGN KEY (`fk_safra`)
+REFERENCES `safra_wasabi`(`id_safra`));
 
-CREATE TABLE `wasabi_daily` (
-  `id_safra_fk` INT NOT NULL,
-  `id_wasabi` INT NOT NULL,
-  `data_hora` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `nivel_umidade` DECIMAL (6,2) NULL,
-  CONSTRAINT `pk_wasabi_daily_safra_wasabi` PRIMARY KEY
-  (`id_safra_fk`, `id_wasabi`),
-  CONSTRAINT `fk_safrawasabi_wasabidaily` FOREIGN KEY
-  (`id_safra_fk`) REFERENCES `safra_wasabi` 
-  (`id_safra`));
-  
+CREATE TABLE `wasabi_daily`(
+`id_wasabi` INT NOT NULL,
+`fk_Sensor` INT NOT NULL,
+`data_hora` DATETIME NOT NULL,
+`nivel_umidade` DECIMAL(6,2) NOT NULL,
+`nivel_temperatura` DECIMAL(6,2) NOT NULL,
+CONSTRAINT `pk_sensor_wasabi` PRIMARY KEY (`id_wasabi`,`fk_sensor`),
+CONSTRAINT `fk_sensor_wasabi` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idsensor`));
+
+CREATE TABLE `localizacao_sensor`(
+`id_localizacao` INT,
+`fk_sensor` INT,
+`latitude` VARCHAR(45),
+`logitude` VARCHAR(45),
+`data_instalacao` DATETIME,
+`data_retirada` DATE,
+`rua` VARCHAR(45),
+`secao` VARCHAR(45),
+`status_ativo` TINYINT DEFAULT 0, -- TINYINT limita numeros entre 127 até -127, CONSTRAINT para ser apenas 0(falso) e 1(verdadeiro), valor base caso não tenha nada seŕa 0;
+CONSTRAINT `pk_sensor_localizacao` PRIMARY KEY (`id_localizacao`, `fk_sensor`),
+CONSTRAINT `fk_sensor_localizacao` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idSensor`));
