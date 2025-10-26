@@ -1,50 +1,53 @@
+DROP DATABASE wasabi_db;
 CREATE DATABASE wasabi_db;
 
 USE wasabi_db;
 
 CREATE TABLE `contato_inicial`(
-`idcontato_inicial` INT PRIMARY KEY,
-`email` VARCHAR(100),
-`pais` VARCHAR(50),
-`mensagem` VARCHAR(500),
-`data_envio` DATE);
+`idContato_inicial` INT PRIMARY KEY,
+`email` VARCHAR(100) NOT NULL,
+`pais` VARCHAR(50) NOT NULL,
+`mensagem` VARCHAR(500) NOT NULL,
+`data_envio` DATETIME DEFAULT current_timestamp
+);
 
 CREATE TABLE `empresa`(
-`idempresa` INT PRIMARY KEY AUTO_INCREMENT,
-`token` CHAR(24) NOT NULL,
-`dt_cadastro` DATE NOT NULL,
+`idEmpresa` INT PRIMARY KEY AUTO_INCREMENT,
+`token` CHAR(10) NOT NULL UNIQUE,
+`dt_cadastro` DATETIME DEFAULT current_timestamp,
 `nome` VARCHAR(100) NOT NULL,
-`cnpj_global` VARCHAR(40) NOT NULL,
-`email` VARCHAR(100) NOT NULL,
-`tel_celular` VARCHAR(15) NOT NULL,
+`cnpj_global` VARCHAR(40) NOT NULL UNIQUE,
+`email` VARCHAR(100) NOT NULL UNIQUE,
+`tel_celular` VARCHAR(15) NOT NULL UNIQUE,
 `tel_residencial` VARCHAR(10) ,
 `senha` VARCHAR(255) NOT NULL);
 
 CREATE TABLE `endereco`(
-`idendereco` INT PRIMARY KEY AUTO_INCREMENT,
-`pais` VARCHAR(45),
-`estado` VARCHAR(45),
-`cep` VARCHAR(9),
+`idEndereco` INT PRIMARY KEY AUTO_INCREMENT,
+`pais` VARCHAR(45) DEFAULT 'Brasil' NOT NULL,
+`estado` VARCHAR(45) NOT NULL,
+`cep` VARCHAR(9) NOT NULL,
 `complemento` VARCHAR(45),
-`numero_residencia` VARCHAR(45),
+`numero_residencia` VARCHAR(45) NOT NULL,
 `fk_idEmpresa` INT,
 CONSTRAINT `fk_empresa_endereco` FOREIGN KEY (`fk_idEmpresa`) REFERENCES `empresa`(`idEmpresa`));
 
 CREATE TABLE `funcionario`(
-`idfuncionario` INT,
+`idFuncionario` INT AUTO_INCREMENT,
 `fk_empresa` INT,
-`nome` VARCHAR(100),
+`dt_cadastro` DATETIME DEFAULT current_timestamp,
+`nome` VARCHAR(100) NOT NULL,
 `email` VARCHAR(100),
 `senha` VARCHAR(255),
 `data_nascimento` DATE,
 `fk_supervisor` INT,
-CONSTRAINT `pk_empresa_funcionario` PRIMARY KEY (`idfuncionario`,`fk_empresa`),
-CONSTRAINT `fk_empresa_funcionario` FOREIGN KEY (`fk_empresa`) REFERENCES `empresa`(`idempresa`),
-CONSTRAINT `fk_funcionario_supervisor` FOREIGN KEY (`fk_supervisor`) REFERENCES `funcionario`(`idfuncionario`));
+CONSTRAINT `pk_empresa_funcionario` PRIMARY KEY (`idFuncionario`,`fk_empresa`),
+CONSTRAINT `fk_empresa_funcionario` FOREIGN KEY (`fk_empresa`) REFERENCES `empresa`(`idEmpresa`),
+CONSTRAINT `fk_funcionario_supervisor` FOREIGN KEY (`fk_supervisor`) REFERENCES `funcionario`(`idFuncionario`));
 
 CREATE TABLE `safra_wasabi`(
-`id_safra` INT PRIMARY KEY AUTO_INCREMENT,
-`numeracao_colheita` INT NOT NULL,
+`idSafra` INT PRIMARY KEY AUTO_INCREMENT,
+`numeracao_colheita` INT NOT NULL UNIQUE,
 `area_total` DECIMAL(8,2),
 `densidade_cultivo` DECIMAL(8,2),
 `inicio_safra` DATE,
@@ -57,14 +60,15 @@ CONSTRAINT `chkTipoWasabi`
 CHECK (`tipo_wasabi` IN ('Eutrema Japonicum', 'Sawa Wasabi', 'Oka Wasabi')),
 `fk_empresa` INT,
 CONSTRAINT `fk_empresa_safra` FOREIGN KEY (`fk_empresa`)
-REFERENCES `empresa`(`idempresa`));
+REFERENCES `empresa`(`idEmpresa`)
+)AUTO_INCREMENT=1000;
 
 CREATE TABLE `responsavel`(
 `fk_safra_wasabi` INT NOT NULL,
 `fk_funcionario` INT,
 CONSTRAINT `pk_responsavel` PRIMARY KEY (`fk_safra_wasabi`,`fk_funcionario`),
-CONSTRAINT `fk_responsavel_safra` FOREIGN KEY (`fk_safra_wasabi`) REFERENCES `safra_wasabi`(`id_safra`),
-CONSTRAINT `fk_responsavel_funcionario` FOREIGN KEY (`fk_funcionario`) REFERENCES `funcionario`(`idfuncionario`));
+CONSTRAINT `fk_responsavel_safra` FOREIGN KEY (`fk_safra_wasabi`) REFERENCES `safra_wasabi`(`idSafra`),
+CONSTRAINT `fk_responsavel_funcionario` FOREIGN KEY (`fk_funcionario`) REFERENCES `funcionario`(`idFuncionario`));
 
 CREATE TABLE `sensor`(
 `idsensor` INT PRIMARY KEY AUTO_INCREMENT,
@@ -75,29 +79,76 @@ CREATE TABLE `sensor`(
 `min_temp` DECIMAL(6,2),
 `min_umidade` VARCHAR(45),
 `max_umiddade` VARCHAR(45),
-`ultima_calibracao` DATE ,
+`ultima_calibracao` DATE,
 `fk_safra` INT , 
 CONSTRAINT `fk_sensor_safra` FOREIGN KEY (`fk_safra`)
-REFERENCES `safra_wasabi`(`id_safra`));
+REFERENCES `safra_wasabi`(`idSafra`)) AUTO_INCREMENT=100;
 
 CREATE TABLE `wasabi_daily`(
-`id_wasabi` INT NOT NULL,
+`id_registro` INT NOT NULL AUTO_INCREMENT,
 `fk_Sensor` INT NOT NULL,
-`data_hora` DATETIME NOT NULL,
-`nivel_umidade` DECIMAL(6,2) NOT NULL,
-`nivel_temperatura` DECIMAL(6,2) NOT NULL,
-CONSTRAINT `pk_sensor_wasabi` PRIMARY KEY (`id_wasabi`,`fk_sensor`),
-CONSTRAINT `fk_sensor_wasabi` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idsensor`));
+`data_hora` DATETIME DEFAULT current_timestamp,
+`valor_umidade` DECIMAL(6,2) NOT NULL,
+`valor_temperatura` DECIMAL(6,2) NOT NULL,
+CONSTRAINT `pk_sensor_wasabi` PRIMARY KEY (`id_registro`,`fk_sensor`),
+CONSTRAINT `fk_sensor_wasabi` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idSensor`));
+
+SELECT * FROM wasabi_daily;
 
 CREATE TABLE `localizacao_sensor`(
-`id_localizacao` INT,
+`idLocalizacao` INT,
 `fk_sensor` INT,
 `latitude` VARCHAR(45),
-`logitude` VARCHAR(45),
+`longitude` VARCHAR(45),
 `data_instalacao` DATETIME,
 `data_retirada` DATE,
-`rua` VARCHAR(45),
-`secao` VARCHAR(45),
+`rua` VARCHAR(45) NOT NULL,
+`secao` VARCHAR(45) NOT NULL,
 `status_ativo` TINYINT DEFAULT 0, -- TINYINT limita numeros entre 127 até -127, CONSTRAINT para ser apenas 0(falso) e 1(verdadeiro), valor base caso não tenha nada seŕa 0;
-CONSTRAINT `pk_sensor_localizacao` PRIMARY KEY (`id_localizacao`, `fk_sensor`),
+CONSTRAINT `pk_sensor_localizacao` PRIMARY KEY (`idLocalizacao`, `fk_sensor`),
 CONSTRAINT `fk_sensor_localizacao` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idSensor`));
+
+
+INSERT INTO empresa (token, nome, cnpj_global, email, tel_celular, tel_residencial, senha)
+VALUES
+('ABC123BR01', 'WasabiTech Brasil', '77.777.777/0001-90', 'contato@wasabibr.com', '+5511987654321', '1133445566', 'senha123'),
+('DEF456BR02', 'Green Agro Brasil', '99.999.999/0001-10', 'info@greenagro.com.br', '+5511998765432', '1144556677', '123456'),
+('GHI789BR03', 'NaturaFarm Brasil', '88.888.333/0001-44', 'natura@farm.com.br', '+5511976543210', NULL, 'securepass');
+
+
+INSERT INTO endereco (pais, estado, cep, complemento, numero_residencia, fk_idEmpresa)
+VALUES
+('Brasil', 'São Paulo', '04567-000', 'Condomínio Verde', '55A', 1),
+('Brasil', 'Minas Gerais', '30123-456', 'Próximo ao rio', '102', 2),
+('Brasil', 'Rio de Janeiro', '22030-040', 'Bairro Jardim', '304', 3);
+
+INSERT INTO funcionario (fk_empresa, nome, email, senha, data_nascimento, fk_supervisor)
+VALUES
+(1, 'João Silva', 'joao@wasabibr.com', 'senhaJoao', '1988-05-12', NULL),
+(2, 'Maria Souza', 'maria@greenagro.com.br', 'senhaMaria', '1990-09-22', NULL),
+(3, 'Carlos Oliveira', 'carlos@agrotech.com.br', 'senhaCarlos', '1985-02-10', NULL);
+
+
+INSERT INTO safra_wasabi (numeracao_colheita, area_total, densidade_cultivo, inicio_safra, termino_estimado, tipo_cultivo, tipo_wasabi, fk_empresa)
+VALUES
+(1000, 250.50, 1.25, '2025-01-15', '2025-10-15', 'Tradicional', 'Eutrema Japonicum', 1),
+(1001, 180.30, 0.95, '2025-03-10', '2025-12-10', 'Estufa', 'Sawa Wasabi', 2),
+(1002, 300.00, 1.40, '2025-02-05', '2025-11-05', 'Tradicional', 'Oka Wasabi', 3);
+
+INSERT INTO responsavel (fk_safra_wasabi, fk_funcionario)
+VALUES
+(1000, 1),
+(1001, 2),
+(1002, 3);
+
+INSERT INTO sensor (modelo, numero_serie, status_funcionamento, max_temp, min_temp, min_umidade, max_umiddade, ultima_calibracao, fk_safra)
+VALUES
+('DHT22', 'SN100BR01', 'Ativo', 35.50, 5.20, '60', '90', '2025-06-01', 1000),
+('DHT11', 'SN100BR02', 'Ativo', 33.80, 6.00, '55', '85', '2025-07-10', 1001),
+('AM2302', 'SN100BR03', 'Manutenção', 30.00, 8.00, '65', '95', '2025-05-20', 1002);
+
+INSERT INTO localizacao_sensor (idLocalizacao, fk_sensor, latitude, longitude, data_instalacao, rua, secao, status_ativo)
+VALUES
+(1, 100, '-23.5596S', '-46.6588W', '2025-01-10 09:00:00', 'Rua K', 'A1', 1),
+(2, 101, '-19.9208S', '-43.9378W', '2025-02-15 10:30:00', 'Rua L', 'B2', 1),
+(3, 102, '-22.9068S', '-43.1729W', '2025-03-05 08:45:00', 'Rua M', 'C3', 0);
