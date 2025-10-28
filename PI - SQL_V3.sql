@@ -17,7 +17,7 @@ CREATE TABLE `empresa`(
 `token` CHAR(10) NOT NULL UNIQUE,
 `dt_cadastro` DATETIME DEFAULT current_timestamp,
 `razão_social` VARCHAR(100) NOT NULL,
-`cnpj_global` VARCHAR(40) NOT NULL UNIQUE,
+`cnpj` VARCHAR(40) NOT NULL UNIQUE,
 `email` VARCHAR(100) NOT NULL UNIQUE,
 `tel_celular` VARCHAR(15) NOT NULL UNIQUE,
 `tel_residencial` VARCHAR(10));
@@ -64,6 +64,7 @@ CONSTRAINT `fk_empresa_safra` FOREIGN KEY (`fk_empresa`)
 REFERENCES `empresa`(`idEmpresa`)
 )AUTO_INCREMENT=1000;
 
+
 CREATE TABLE `responsavel`(
 `fk_safra_wasabi` INT NOT NULL,
 `fk_funcionario` INT,
@@ -84,6 +85,7 @@ CREATE TABLE `sensor`(
 `fk_safra` INT , 
 CONSTRAINT `fk_sensor_safra` FOREIGN KEY (`fk_safra`)
 REFERENCES `safra_wasabi`(`idSafra`)) AUTO_INCREMENT=100;
+
 
 CREATE TABLE `wasabi_daily`(
 `id_registro` INT NOT NULL AUTO_INCREMENT,
@@ -106,7 +108,7 @@ CREATE TABLE `localizacao_sensor`(
 CONSTRAINT `fk_sensor_localizacao` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idSensor`));
 
 
-INSERT INTO empresa (token, razão_social, cnpj_global, email, tel_celular, tel_residencial)
+INSERT INTO empresa (token, razão_social, cnpj, email, tel_celular, tel_residencial)
 VALUES
 ('ABC123BR01', 'WasabiTech Brasil', '77.777.777/0001-90', 'contato@wasabibr.com', '+5511987654321', '1133445566'),
 ('DEF456BR02', 'Green Agro Brasil', '99.999.999/0001-10', 'info@greenagro.com.br', '+5511998765432', '1144556677'),
@@ -150,3 +152,9 @@ VALUES
 (2, 101, '2025-02-15 10:30:00', 'Rua L', 'B2', 1),
 (3, 102, '2025-03-05 08:45:00', 'Rua M', 'C3', 0);
 
+
+
+select * from wasabi_daily JOIN sensor
+	ON fk_sensor = idsensor;
+    
+    
