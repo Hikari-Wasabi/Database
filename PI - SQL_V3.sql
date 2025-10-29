@@ -129,6 +129,11 @@ VALUES
 (3, 'Carlos Oliveira', 'carlos@agrotech.com.br', 'senhaCarlos', '1985-02-10', NULL);
 
 
+INSERT INTO funcionario (fk_empresa, nome, email, senha, data_nascimento, fk_supervisor) VALUE
+	(1, 'Mario augusto', 'mario@wasabibr.com', 'senhaJoao', '2000-10-19', 1),
+	(2, 'Fernanda Lima', 'fernanda@greenagro.com.br', 'senhaFernanda', '1995-03-08', 2),
+	(3, 'Bruno Pereira', 'bruno@agrotech.com.br', 'senhaBruno', '1999-01-25', 3);
+
 INSERT INTO safra_wasabi (numeracao_colheita, area_total, densidade_cultivo, inicio_safra, termino_estimado, tipo_cultivo, tipo_wasabi, fk_empresa)
 VALUES
 (1000, 250.50, 1.25, '2025-01-15', '2025-10-15', 'Tradicional', 'Eutrema Japonicum', 1),
