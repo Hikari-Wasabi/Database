@@ -30,7 +30,7 @@ CREATE TABLE `endereco`(
 `cep` VARCHAR(9) NOT NULL,
 `complemento` VARCHAR(45),
 `numero_residencia` VARCHAR(45) NOT NULL,
-`FK_empresa` INT,
+`fk_empresa` INT,
 CONSTRAINT `fk_empresa_endereco` FOREIGN KEY (`fk_empresa`) REFERENCES `empresa`(`idEmpresa`)
 );
 
@@ -116,7 +116,7 @@ VALUES
 ('GHI789BR03', 'NaturaFarm Brasil', '88.888.333/0001-44', 'natura@farm.com.br', '+5511976543210', NULL);
 
 
-INSERT INTO endereco (pais, estado, cep, complemento, numero_residencia, FK_empresa)
+INSERT INTO endereco (pais, estado, cep, complemento, numero_residencia, fk_empresa)
 VALUES
 ('Brasil', 'São Paulo', '04567-000', 'Condomínio Verde', '55A', 1),
 ('Brasil', 'Minas Gerais', '30123-456', 'Próximo ao rio', '102', 2),
@@ -141,6 +141,15 @@ VALUES
 (1002, 300.00, 1.40, '2025-02-05', '2025-11-05', 'Tradicional', 'Oka Wasabi', 3);
 
 
+UPDATE safra_wasabi SET fk_funcionario = 1
+	WHERE idSafra = 1000; 
+    
+UPDATE safra_wasabi SET fk_funcionario = 2
+	WHERE idSafra = 1001;
+    
+UPDATE safra_wasabi SET fk_funcionario = 3
+	WHERE idSafra = 1002; 
+
 INSERT INTO sensor (modelo, numero_serie, status_ativo, max_temp, min_temp, min_umidade, max_umiddade, ultima_calibracao, fk_safra)
 VALUES
 ('DHT11', 'SN100BR01', 1, 35.50, 5.20, '60', '90', '2025-06-01', 1000),
@@ -158,4 +167,24 @@ VALUES
 select * from wasabi_daily JOIN sensor
 	ON fk_sensor = idsensor;
     
+
+SELECT idSafra, nome FROM  funcionario JOIN safra_wasabi
+		ON fk_funcionario =  idFuncionario;
+
+SELECT * FROM funcionario;
+SELECT * FROM safra_wasabi;
+        
+SELECT estado, cep, razão_social, sw.idSafra, nome, numero_serie, ls.rua_plantacao, ls.bloco_plantacao, w.data_hora, w.valor_umidade, w.valor_temperatura 
+		FROM endereco JOIN empresa
+				ON fk_empresa = idEmpresa
+			JOIN safra_wasabi AS sw
+				ON sw.fk_empresa = idEmpresa
+			JOIN funcionario
+				ON sw.fk_funcionario = idFuncionario
+			JOIN sensor
+				ON fk_safra = sw.idSafra
+			JOIN localizacao_sensor as ls
+				ON ls.fk_sensor = idSensor
+			JOIN wasabi_daily as w
+				ON w.fk_sensor = idSensor;
     
