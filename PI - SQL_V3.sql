@@ -41,7 +41,7 @@ CREATE TABLE `funcionario`(
 `nome` VARCHAR(100) NOT NULL,
 `email` VARCHAR(100) NOT NULL,
 `senha` VARCHAR(255),
-`data_nascimento` DATE NOT NULL,
+`data_nascimento` DATE NULL,
 `fk_supervisor` INT,
 CONSTRAINT `pk_empresa_funcionario` PRIMARY KEY (`idFuncionario`,`fk_empresa`),
 CONSTRAINT `fk_empresa_funcionario` FOREIGN KEY (`fk_empresa`) REFERENCES `empresa`(`idEmpresa`),
