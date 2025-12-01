@@ -5,7 +5,8 @@ CREATE DATABASE wasabi_db;
 USE wasabi_db;
 
 CREATE TABLE `contato_inicial`(
-`idContato_inicial` INT PRIMARY KEY,
+`idContato_inicial` INT PRIMARY KEY AUTO_INCREMENT,
+`razão_social` VARCHAR(100) NOT NULL,
 `email` VARCHAR(100) NOT NULL,
 `pais` VARCHAR(50)  NOT NULL,
 `mensagem` VARCHAR(500) NOT NULL,
@@ -41,7 +42,6 @@ CREATE TABLE `funcionario`(
 `nome` VARCHAR(100) NOT NULL,
 `email` VARCHAR(100) NOT NULL,
 `senha` VARCHAR(255),
-`data_nascimento` DATE NULL,
 `fk_supervisor` INT,
 CONSTRAINT `pk_empresa_funcionario` PRIMARY KEY (`idFuncionario`,`fk_empresa`),
 CONSTRAINT `fk_empresa_funcionario` FOREIGN KEY (`fk_empresa`) REFERENCES `empresa`(`idEmpresa`),
@@ -62,15 +62,31 @@ CONSTRAINT `chkTipoWasabi`
 CHECK (`tipo_wasabi` IN ('Eutrema Japonicum', 'Sawa Wasabi', 'Oka Wasabi')),
 `fk_empresa` INT,
 CONSTRAINT `fk_empresa_safra` FOREIGN KEY (`fk_empresa`)
-REFERENCES `empresa`(`idEmpresa`),
+REFERENCES `empresa`(`idEmpresa`)
+/* 
 `fk_funcionario` INT, 
 CONSTRAINT `fk_safra_responsavel`
 	FOREIGN KEY (`fk_funcionario`)
 		REFERENCES `funcionario` (idFuncionario)
+*/
 )AUTO_INCREMENT=1000;
 
-
-
+CREATE TABLE `responsavel` (
+  `idresponsavel` INT AUTO_INCREMENT,
+  `fk_funcionario` INT,
+  `fk_empresa` INT,
+  `fk_safra` INT,
+  `funcao` VARCHAR(100),
+  `comeco_gestao` TIME,
+  `fim_gestao` TIME,
+  PRIMARY KEY (`idresponsavel`, `fk_funcionario`, `fk_empresa`, `fk_safra`),
+  CONSTRAINT `fk_responsavel_Funcionario`
+    FOREIGN KEY (`fk_funcionario` , `fk_empresa`)
+    REFERENCES `Funcionario` (`idFuncionario` , `fk_empresa`),
+  CONSTRAINT `fk_responsavel_safra_wasabi`
+    FOREIGN KEY (`fk_safra`)
+    REFERENCES `safra_wasabi` (`idSafra`));
+    
 CREATE TABLE `sensor`(
 `idsensor` INT PRIMARY KEY AUTO_INCREMENT,
 `modelo` VARCHAR(45) NOT NULL,
@@ -97,7 +113,7 @@ CREATE TABLE `wasabi_daily`(
 CONSTRAINT `pk_sensor_wasabi` PRIMARY KEY (`id_registro`,`fk_sensor`),
 CONSTRAINT `fk_sensor_wasabi` FOREIGN KEY (`fk_sensor`) REFERENCES `sensor`(`idSensor`));
 
-SELECT * FROM wasabi_daily;
+
 
 CREATE TABLE `localizacao_sensor`(
 `idLocalizacao` INT PRIMARY KEY,
@@ -122,17 +138,17 @@ VALUES
 ('Brasil', 'Minas Gerais', '30123-456', 'Próximo ao rio', '102', 2),
 ('Brasil', 'Rio de Janeiro', '22030-040', 'Bairro Jardim', '304', 3);
 
-INSERT INTO funcionario (fk_empresa, nome, email, senha, data_nascimento, fk_supervisor)
+INSERT INTO funcionario (fk_empresa, nome, email, senha, fk_supervisor)
 VALUES
-(1, 'João Silva', 'joao@wasabibr.com', 'senhaJoao', '1988-05-12', NULL),
-(2, 'Maria Souza', 'maria@greenagro.com.br', 'senhaMaria', '1990-09-22', NULL),
-(3, 'Carlos Oliveira', 'carlos@agrotech.com.br', 'senhaCarlos', '1985-02-10', NULL);
+(1, 'João Silva', 'joao@wasabibr.com', 'senhaJoao', NULL),
+(2, 'Maria Souza', 'maria@greenagro.com.br', 'senhaMaria', NULL),
+(3, 'Carlos Oliveira', 'carlos@agrotech.com.br', 'senhaCarlos', NULL);
 
 
-INSERT INTO funcionario (fk_empresa, nome, email, senha, data_nascimento, fk_supervisor) VALUE
-	(1, 'Mario augusto', 'mario@wasabibr.com', 'senhaJoao', '2000-10-19', 1),
-	(2, 'Fernanda Lima', 'fernanda@greenagro.com.br', 'senhaFernanda', '1995-03-08', 2),
-	(3, 'Bruno Pereira', 'bruno@agrotech.com.br', 'senhaBruno', '1999-01-25', 3);
+INSERT INTO funcionario (fk_empresa, nome, email, senha, fk_supervisor) VALUE
+	(1, 'Mario augusto', 'mario@wasabibr.com', 'senhaJoao', 1),
+	(2, 'Fernanda Lima', 'fernanda@greenagro.com.br', 'senhaFernanda', 2),
+	(3, 'Bruno Pereira', 'bruno@agrotech.com.br', 'senhaBruno', 3);
 
 INSERT INTO safra_wasabi (numeracao_colheita, area_total, densidade_cultivo, inicio_safra, termino_estimado, tipo_cultivo, tipo_wasabi, fk_empresa)
 VALUES
@@ -140,15 +156,13 @@ VALUES
 (1001, 180.30, 0.95, '2025-03-10', '2025-12-10', 'Estufa', 'Sawa Wasabi', 2),
 (1002, 300.00, 1.40, '2025-02-05', '2025-11-05', 'Tradicional', 'Oka Wasabi', 3);
 
-
-UPDATE safra_wasabi SET fk_funcionario = 1
-	WHERE idSafra = 1000; 
-    
-UPDATE safra_wasabi SET fk_funcionario = 2
-	WHERE idSafra = 1001;
-    
-UPDATE safra_wasabi SET fk_funcionario = 3
-	WHERE idSafra = 1002; 
+SELECT * FROM funcionario;
+SELECT * FROM safra_wasabi;
+SELECT * FROM responsavel;
+INSERT INTO responsavel (fk_funcionario, fk_empresa ,fk_safra) VALUES 
+(1, 1, 1000),
+(1, 1, 1001),
+(1, 1, 1002);
 
 INSERT INTO sensor (modelo, numero_serie, status_ativo, max_temp, min_temp, min_umidade, max_umiddade, ultima_calibracao, fk_safra)
 VALUES
@@ -162,29 +176,83 @@ VALUES
 (2, 101, '2025-02-15 10:30:00', 'Rua L', 'B2'),
 (3, 102, '2025-03-05 08:45:00', 'Rua M', 'C3');
 
+SELECT * FROM sensor;
+
+SELECT idSafra, 
+		idsensor, 
+        status_ativo  
+        FROM safra_wasabi 
+        JOIN responsavel r
+        ON r.fk_safra = idSafra
+        JOIN funcionario 
+        ON fk_funcionario = idFuncionario 
+        JOIN sensor s
+        ON s.fk_safra = idSafra 
+        WHERE nome = 'João Silva' AND email = 'joão@wasabibr.com' AND senha = 'senhaJoao';
+
+SELECT * FROM wasabi_daily;
+
+INSERT INTO wasabi_daily (fk_Sensor, valor_umidade, valor_temperatura) VALUES
+(101, 50, 18);
 
 
-select * from wasabi_daily JOIN sensor
-	ON fk_sensor = idsensor;
-    
+    CREATE OR REPLACE VIEW vw_situacao_safra AS
+SELECT 
+    id_registro, 
+    idsensor, 
+    idSafra, 
+    valor_temperatura, 
+    valor_umidade,
+    CASE 
+        WHEN valor_temperatura BETWEEN 8 AND 20
+        THEN 'adequado'
+        WHEN valor_temperatura < 8 OR valor_temperatura > 20
+        THEN 'critico' 
+        ELSE 'instavel'
+    END AS situacao_temperatura,
+    CASE 
+        WHEN valor_umidade BETWEEN 60 AND 90
+        THEN 'adequado'
+        WHEN valor_umidade < 60 OR valor_umidade > 90
+        THEN 'critico'
+        ELSE 'instavel'
+    END AS situacao_umidade,
+    CASE 
+        WHEN valor_temperatura BETWEEN 8 AND 20
+             AND valor_umidade BETWEEN 60 AND 90
+        THEN 'adequado'
+        WHEN (valor_temperatura NOT BETWEEN 8 AND 20
+              AND valor_umidade BETWEEN 60 AND 90)
+             OR
+             (valor_umidade NOT BETWEEN 60 AND 90
+              AND valor_temperatura BETWEEN 8 AND 20)
+        THEN 'instavel'
+        ELSE 'critico'
+    END AS situacao_safra
+FROM safra_wasabi 
+JOIN sensor ON fk_safra = idSafra
+JOIN wasabi_daily ON fk_Sensor = idsensor
+ORDER BY id_registro DESC;
 
-SELECT idSafra, nome FROM  funcionario JOIN safra_wasabi
-		ON fk_funcionario =  idFuncionario;
+select * from vw_situacao_safra;
 
-SELECT * FROM funcionario;
-SELECT * FROM safra_wasabi;
-        
-SELECT estado, cep, razão_social, sw.idSafra, nome, numero_serie, ls.rua_plantacao, ls.bloco_plantacao, w.data_hora, w.valor_umidade, w.valor_temperatura 
-		FROM endereco JOIN empresa
-				ON fk_empresa = idEmpresa
-			JOIN safra_wasabi AS sw
-				ON sw.fk_empresa = idEmpresa
-			JOIN funcionario
-				ON sw.fk_funcionario = idFuncionario
-			JOIN sensor
-				ON fk_safra = sw.idSafra
-			JOIN localizacao_sensor as ls
-				ON ls.fk_sensor = idSensor
-			JOIN wasabi_daily as w
-				ON w.fk_sensor = idSensor;
+
+SELECT *
+FROM vw_situacao_safra v
+JOIN responsavel r ON v.idSafra = r.fk_safra
+WHERE id_registro = (
+    SELECT MAX(id_registro)
+    FROM vw_situacao_safra
+    WHERE idsensor = v.idsensor
+)
+AND fk_funcionario = 1;
+
+CREATE OR REPLACE VIEW vw_login_funcionario AS
+SELECT
+    idFuncionario,
+    nome,
+    email,
+    senha,
+    fk_empresa
+FROM funcionario;
     
