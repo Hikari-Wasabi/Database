@@ -2,6 +2,7 @@
 CREATE DATABASE wasabi_db;
 
 
+
 USE wasabi_db;
 
 CREATE TABLE `contato_inicial`(
@@ -82,7 +83,7 @@ CREATE TABLE `responsavel` (
   PRIMARY KEY (`idresponsavel`, `fk_funcionario`, `fk_empresa`, `fk_safra`),
   CONSTRAINT `fk_responsavel_Funcionario`
     FOREIGN KEY (`fk_funcionario` , `fk_empresa`)
-    REFERENCES `Funcionario` (`idFuncionario` , `fk_empresa`),
+    REFERENCES `funcionario` (`idFuncionario` , `fk_empresa`),
   CONSTRAINT `fk_responsavel_safra_wasabi`
     FOREIGN KEY (`fk_safra`)
     REFERENCES `safra_wasabi` (`idSafra`));
