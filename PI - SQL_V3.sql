@@ -64,12 +64,6 @@ CHECK (`tipo_wasabi` IN ('Eutrema Japonicum', 'Sawa Wasabi', 'Oka Wasabi')),
 `fk_empresa` INT,
 CONSTRAINT `fk_empresa_safra` FOREIGN KEY (`fk_empresa`)
 REFERENCES `empresa`(`idEmpresa`)
-/* 
-`fk_funcionario` INT, 
-CONSTRAINT `fk_safra_responsavel`
-	FOREIGN KEY (`fk_funcionario`)
-		REFERENCES `funcionario` (idFuncionario)
-*/
 )AUTO_INCREMENT=1000;
 
 CREATE TABLE `responsavel` (
@@ -200,7 +194,8 @@ INSERT INTO wasabi_daily (fk_Sensor, valor_umidade, valor_temperatura) VALUES
     CREATE OR REPLACE VIEW vw_situacao_safra AS
 SELECT 
     id_registro, 
-    idsensor, 
+    idsensor,
+	modelo,
     idSafra, 
     valor_temperatura, 
     valor_umidade,
@@ -257,3 +252,24 @@ SELECT
     fk_empresa
 FROM funcionario;
     
+CREATE OR REPLACE VIEW vw_ultimasmedidas_daily AS
+SELECT 
+       id_registro,
+       fk_sensor,
+       valor_temperatura as temperatura, 
+        valor_umidade as umidade,
+                        data_hora,
+                        DATE_FORMAT(data_hora,'%H:%i:%S') as momento_grafico
+                        FROM wasabi_daily;
+    SELECT * FROM vw_ultimasmedidas_daily;
+    
+CREATE OR REPLACE VIEW vw_temporeal_daily AS
+SELECT 
+       valor_temperatura as temperatura, 
+        valor_umidade as umidade,
+                        DATE_FORMAT(data_hora,'%H:%i:%S') as momento_grafico, 
+                        fk_sensor,
+                        id_registro
+                        FROM wasabi_daily;
+                        
+select * from vw_temporeal_daily;
